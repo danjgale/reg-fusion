@@ -106,7 +106,11 @@ def vol_to_fsaverage(input_img, out_dir, template_type='MNI152_orig',
         use MNI152_* if `input_img` is in MNI152-space). By default 
         'MNI152_orig'.
     rf_type : {'RF_ANTs', 'RF_M3Z'}
-        Registration fusion type, by default 'RF_ANTs'
+        Type of Registration Fusion approaches used to generate the mappings.
+        RF-M3Z is recommended if data was registered from subject's space to 
+        the volumetric atlas space using FreeSurfer. RF-ANTs is recommended if 
+        such registrations were carried out using other tools, especially 
+        ANTs. By default 'RF_ANTs'
     interp : {'linear', 'nearest'}, optional
         Interpolation approach. If `gifti_type` is 'label', then interpolation 
         is always set to 'nearest'. By default 'linear'
