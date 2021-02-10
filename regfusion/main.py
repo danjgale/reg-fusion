@@ -36,7 +36,9 @@ def _set_img_prefix(img):
 
     return prefix
 
+
 def _to_gifti(x, gifti_type):
+    """Save x to correct gifti image type"""
 
     # gifti type parameters. Forcing the datatype to float/int 32 ensures
     # compatibility with HCP surfaces
@@ -57,6 +59,7 @@ def _to_gifti(x, gifti_type):
 
 
 def _ras_to_vox(ras, affine):
+    """Covert RAS to voxels coordinates"""
     trans = affine[:3, [3]] # retain as column vector
     x = ras - np.tile(trans, (1, ras.shape[1]))
     return np.linalg.inv(affine[:3, :3]) @ x 
@@ -84,14 +87,38 @@ def _project_data(x, affine, ras, interp='linear'):
     return proj_data
 
 
-def vol_to_fsaverage(img, out_dir, template_type='MNI152_orig', 
-                         rf_type='RF_ANTs', interp='linear', gifti_type='func'):
+def vol_to_fsaverage(input_img, out_dir, template_type='MNI152_orig', 
+                     rf_type='RF_ANTs', interp='linear', gifti_type='func'):
+    """Project volumetric data in standard space (MNI152 or Colin27) to 
+    fsaverage 
 
-    prefix = _set_img_prefix(img)
+    Parameters
+    ----------
+    input_img : niimg-like
+        Input image in standard space (i.e. MNI152 or Colin27)
+    out_dir : str
+        Path to output directory (does not need to already exist)
+    template_type : {'MNI152_orig', 'Colin27_orig', 'MNI152_norm', 'Colin27_norm'}
+        Type of volumetric template used in index files. Use 'MNI152_orig' or 
+        'Colin27_orig' when `rf_type` is `RF_ANTs`. Use 'MNI152_norm' or 
+        'Colin27_norm' when `rf_type` is 'RF_M3Z'. An exception is raised if 
+        `template_type` does not correspond to the correct `rf_type`. Ensure 
+        that the template matches the standard space of `input_img` (i.e., 
+        use MNI152_* if `input_img` is in MNI152-space). By default 
+        'MNI152_orig'.
+    rf_type : {'RF_ANTs', 'RF_M3Z'}
+        Registration fusion type, by default 'RF_ANTs'
+    interp : {'linear', 'nearest'}, optional
+        Interpolation approach. If `gifti_type` is 'label', then interpolation 
+        is always set to 'nearest'. By default 'linear'
+    gifti_type : {'func', 'label'}, optional
+        Type of output gifti image, by default 'func'
+    """
+    prefix = _set_img_prefix(input_img)
     if prefix == '':
         warnings.warn('prefix is empty will not be included in output files')
 
-    img = check_niimg(img)
+    img = check_niimg(input_img)
 
     # check if correct template and rf type are used
     if rf_type == 'RF_ANTs':
@@ -132,7 +159,3 @@ def vol_to_fsaverage(img, out_dir, template_type='MNI152_orig',
             out_giimg = _to_gifti(projected, gifti_type)
             nib.save(out_giimg, 
                      os.path.join(out_dir, out_file + f'{gifti_type}.gii'))
-
-
-if __name__ == '__main__':
-    pass
