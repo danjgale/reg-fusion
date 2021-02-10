@@ -1,6 +1,5 @@
 
 import os
-import re
 import warnings
 import numpy as np
 from scipy.interpolate import interpn
