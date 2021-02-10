@@ -63,7 +63,9 @@ def _ras_to_vox(ras, affine):
     
 
 def _project_data(x, affine, ras, interp='linear'):
-    """Project data onto hemisphere surface based on the provided map"""
+    """Project data onto fsaverage hemisphere surface based on the provided 
+    map
+    """
     coords = _ras_to_vox(ras, affine)
     volgrid = [np.arange(x.shape[i]) for i in range(3)]
     
@@ -82,8 +84,8 @@ def _project_data(x, affine, ras, interp='linear'):
     return proj_data
 
 
-def project_volume(img, out_dir, template_type='MNI152_orig', 
-                   rf_type='RF_ANTs', interp='linear', gifti_type='func'):
+def vol_to_fsaverage(img, out_dir, template_type='MNI152_orig', 
+                         rf_type='RF_ANTs', interp='linear', gifti_type='func'):
 
     prefix = _set_img_prefix(img)
     if prefix == '':
