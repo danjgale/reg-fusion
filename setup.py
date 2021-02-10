@@ -26,8 +26,9 @@ setup(
     url='https://github.com/danjgale/reg-fusion',
     install_requires=[
         'numpy',
-        'pandas',
-        'nibabel'
+        'scipy',
+        'nibabel',
+        'nilearn'
     ],
     tests_require=test_deps,
     extras_require=extras,
