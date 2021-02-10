@@ -1,2 +1,4 @@
 scratch/
 __pycache__/
+.eggs/
+*.egg-info/
