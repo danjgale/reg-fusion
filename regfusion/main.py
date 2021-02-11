@@ -41,11 +41,11 @@ def _to_gifti(x, gifti_type):
 
     # gifti type parameters. Forcing the datatype to float/int 32 ensures
     # compatibility with HCP surfaces
-    if gifti_type == 'label':
+    if gifti_type == 'func':
         intent_code = 'NIFTI_INTENT_ESTIMATE'
         datatype = 'NIFTI_TYPE_FLOAT32'
         img_array = x.astype(np.float32)
-    elif gifti_type == 'func':
+    elif gifti_type == 'label':
         intent_code = 'NIFTI_INTENT_LABEL'
         datatype = 'NIFTI_TYPE_INT32'
         img_array = x.astype(np.int32)
@@ -155,8 +155,8 @@ def vol_to_fsaverage(input_img, out_dir, template_type='MNI152_orig',
         out_file = f"{hemi}.{prefix}{mapping.replace('txt', '')}"
         
         # # save nifti (exactly like original matlab version)
-        out_niimg = nib.Nifti1Image(projected, ras)
-        nib.save(out_niimg, os.path.join(out_dir, out_file + '.nii.gz'))
+        # out_niimg = nib.Nifti1Image(projected, ras)
+        # nib.save(out_niimg, os.path.join(out_dir, out_file + '.nii.gz'))
     
         if gifti_type:
             out_giimg = _to_gifti(projected, gifti_type)
