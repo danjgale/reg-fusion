@@ -97,12 +97,11 @@ def vol_to_fsaverage(input_img, out_dir, template_type='MNI152_orig',
         Path to output directory (does not need to already exist)
     template_type : {'MNI152_orig', 'Colin27_orig', 'MNI152_norm', 'Colin27_norm'}
         Type of volumetric template used in index files. Use 'MNI152_orig' or 
-        'Colin27_orig' when `rf_type` is `RF_ANTs`. Use 'MNI152_norm' or 
-        'Colin27_norm' when `rf_type` is 'RF_M3Z'. An exception is raised if 
-        `template_type` does not correspond to the correct `rf_type`. Ensure 
-        that the template matches the standard space of `input_img` (i.e., 
-        use MNI152_* if `input_img` is in MNI152-space). By default 
-        'MNI152_orig'.
+        'Colin27_orig' when `rf_type` is 'RF_ANTs'. Use 'MNI152_norm' or 
+        'Colin27_norm' when `rf_type` is 'RF_M3Z'. Otherwise, an exception is 
+        raised. Ensure that the template matches the standard space of 
+        `input_img` (i.e., use MNI152_* if `input_img` is in MNI152-space). By 
+        default 'MNI152_orig'.
     rf_type : {'RF_ANTs', 'RF_M3Z'}
         Type of Registration Fusion approaches used to generate the mappings.
         RF-M3Z is recommended if data was registered from subject's space to 
@@ -114,9 +113,8 @@ def vol_to_fsaverage(input_img, out_dir, template_type='MNI152_orig',
         is always set to 'nearest'. By default 'linear'
     out_type : {'nii.gz, 'func.gii', 'label.gii'}, optional
         File type of surface files. Default is 'nii.gz', which is true to the 
-        original Wu et al (2018) implementation. However, note that gifti 
-        formats, either 'func.gii' or 'label.gii', are often preferred in many 
-        applications.
+        original Wu et al (2018) implementation. Note that gifti 
+        formats, either 'func.gii' or 'label.gii', are often preferred.
 
     Parameters
     ----------
