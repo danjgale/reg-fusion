@@ -9,7 +9,6 @@ from nilearn._utils import check_niimg
 
 def _set_img_prefix(img):
     """Extract filename of input image and handle edge cases"""
-
     if isinstance(img, nib.nifti1.Nifti1Image):
         if img.get_filename() is None:
             # sometimes arises if performing operations with nibabel or nilearn
@@ -38,14 +37,13 @@ def _set_img_prefix(img):
 
 def _to_gifti(x, gifti_type):
     """Save x to correct gifti image type"""
-
-    # gifti type parameters. Forcing the datatype to float/int 32 ensures
-    # compatibility with HCP surfaces
-    if gifti_type == 'func':
+    # Forcing the datatype to float/int 32 ensures compatibility with HCP 
+    # surfaces
+    if gifti_type == 'func.gii':
         intent_code = 'NIFTI_INTENT_ESTIMATE'
         datatype = 'NIFTI_TYPE_FLOAT32'
         img_array = x.astype(np.float32)
-    elif gifti_type == 'label':
+    elif gifti_type == 'label.gii':
         intent_code = 'NIFTI_INTENT_LABEL'
         datatype = 'NIFTI_TYPE_INT32'
         img_array = x.astype(np.int32)
@@ -87,7 +85,7 @@ def _project_data(x, affine, ras, interp='linear'):
 
 
 def vol_to_fsaverage(input_img, out_dir, template_type='MNI152_orig', 
-                     rf_type='RF_ANTs', interp='linear', gifti_type='func'):
+                     rf_type='RF_ANTs', interp='linear', out_type='nii.gz'):
     """Project volumetric data in standard space (MNI152 or Colin27) to 
     fsaverage 
 
@@ -112,10 +110,18 @@ def vol_to_fsaverage(input_img, out_dir, template_type='MNI152_orig',
         such registrations were carried out using other tools, especially 
         ANTs. By default 'RF_ANTs'
     interp : {'linear', 'nearest'}, optional
-        Interpolation approach. If `gifti_type` is 'label', then interpolation 
+        Interpolation approach. If `out_type` is 'label.gii', then interpolation 
         is always set to 'nearest'. By default 'linear'
-    gifti_type : {'func', 'label'}, optional
-        Type of output gifti image, by default 'func'
+    out_type : {'nii.gz, 'func.gii', 'label.gii'}, optional
+        File type of surface files. Default is 'nii.gz', which is true to the 
+        original Wu et al (2018) implementation. However, note that gifti 
+        formats, either 'func.gii' or 'label.gii', are often preferred in many 
+        applications.
+
+    Parameters
+    ----------
+    str, str
+        Absolute paths to left and right hemisphere output files, respectively
     """
     prefix = _set_img_prefix(input_img)
     if prefix == '':
@@ -123,7 +129,7 @@ def vol_to_fsaverage(input_img, out_dir, template_type='MNI152_orig',
 
     img = check_niimg(input_img)
 
-    # check if correct template and rf type are used
+    # check if correct template and rf_type are used
     if rf_type == 'RF_ANTs':
         accepted_temp_types = ['MNI152_orig', 'Colin27_orig']
     elif rf_type == 'RF_M3Z':
@@ -135,30 +141,35 @@ def vol_to_fsaverage(input_img, out_dir, template_type='MNI152_orig',
         raise ValueError('template_type must be one of '
                          f'{accepted_temp_types} when using rf_type={rf_type}')
 
-    # handle gifti type 
-    if gifti_type not in ['label', 'func', None]:
-            raise ValueError("gifti_type must be 'label' or 'func'")
-
-    if (gifti_type == 'label') and (interp != 'nearest'):
+    # handle out type 
+    accepted_out_types = ['nii.gz', 'label.gii', 'func.gii']
+    if out_type not in accepted_out_types:
+            raise ValueError(f"out_type must be one of {accepted_out_types}")
+    if (out_type == 'label.gii') and (interp != 'nearest'):
         interp = 'nearest'
-        warnings.warn("interp set to 'nearest' with gifti_type 'label'")
+        warnings.warn("interp set to 'nearest' with out_type 'label.gii'")
 
+    # get specified mapping file
     map_dir = os.path.join(os.path.dirname(__file__), 'mappings')
     mapping = f'.avgMapping_allSub_{rf_type}_{template_type}_to_fsaverage.txt'
 
     os.makedirs(out_dir, exist_ok=True)
+    outs = []
     for hemi in ['lh', 'rh']:
+        # project hemisphere
         ras = np.loadtxt(os.path.join(map_dir, hemi + mapping))
         projected = _project_data(img.get_fdata(), img.affine, ras, interp)
-        projected = np.expand_dims(projected.T, 2)
-
-        out_file = f"{hemi}.{prefix}{mapping.replace('txt', '')}"
-        
-        # # save nifti (exactly like original matlab version)
-        # out_niimg = nib.Nifti1Image(projected, ras)
-        # nib.save(out_niimg, os.path.join(out_dir, out_file + '.nii.gz'))
     
-        if gifti_type:
-            out_giimg = _to_gifti(projected, gifti_type)
-            nib.save(out_giimg, 
-                     os.path.join(out_dir, out_file + f'{gifti_type}.gii'))
+        if out_type == 'nii.gz':
+            # set nifti exactly like original Wu et al MATLAB version
+            projected = np.expand_dims(projected.T, 2)
+            out_img = nib.Nifti1Image(projected.astype(np.float), img.affine)
+        elif out_type in accepted_out_types[1:]:
+            out_img = _to_gifti(projected, out_type)
+
+        out = os.path.join(out_dir, 
+                           f"{hemi}.{prefix}{mapping.replace('txt', out_type)}")
+        nib.save(out_img, out)
+        outs.append(os.path.abspath(out))
+    
+    return outs[0], outs[1]
