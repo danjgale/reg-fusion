@@ -1,4 +1,6 @@
 scratch/
 __pycache__/
+build/
+dist/
 .eggs/
 *.egg-info/
