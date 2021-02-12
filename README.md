@@ -1,8 +1,16 @@
 # reg-fusion
 
-This is a Python implementation of [Wu et al (2018)'s registration fusion methods](https://onlinelibrary.wiley.com/doi/full/10.1002/hbm.24213) to project MRI data from standard volumetric coordinates, either MNI152 or Colin27, to Freesurfer's fsaverage. This is already [available in the MATLAB-based version](https://github.com/ThomasYeoLab/CBIG/tree/master/stable_projects/registration/Wu2017_RegistrationFusion) provided by *Wu et al*, which works well out of the box. However, given Python's increasing stake in neuroimaging analysis, a pure Python version may be useful. 
+<figure>
+<p align="center">
+  <img src="imgs/example.png" alt="logo" width="500"/>
+  <br>
+  <em>Projection of a central sulcus probability map using the RF-ANTs approach (right hemisphere shown).</em>
+</p>
+</figure>
 
-A huge thank you to *Wu et al* for making this excellent tool available! If you use this package, **please cite the original**:
+This is a Python implementation of [Wu et al (2018)'s registration fusion methods](https://onlinelibrary.wiley.com/doi/full/10.1002/hbm.24213) to project MRI data from standard volumetric coordinates, either MNI152 or Colin27, to Freesurfer's fsaverage. This tool already [available in the original MATLAB-based version](https://github.com/ThomasYeoLab/CBIG/tree/master/stable_projects/registration/Wu2017_RegistrationFusion) provided by *Wu et al*, which works well out of the box. However, given Python's increasing stake in neuroimaging analysis, a pure Python version may be useful. 
+
+A huge thank you to *Wu et al* for making their excellent tool openly available! If you use this package, **please cite the original**:
 
 >Wu J, Ngo GH, Greve DN, Li J, He T, Fischl B, Eickhoff SB, Yeo BTT. [**Accurate nonlinear mapping between MNI volumetric and FreeSurfer surface coordinate systems**](http://people.csail.mit.edu/ythomas/publications/2018VolSurfMapping-HBM.pdf), *Human Brain Mapping* 39:3793–3808, 2018.
 
@@ -41,45 +49,6 @@ optional arguments:
                     linear
   -t out_type       File type of surface files. nii.gz is true to the original Wu et al (2018) implementation. Note that gifti formats, either func.gii or
                     label.gii, are often preferred. Default: nii.gz
-```
-
-### Examples
-
-#### 1) Default MNI to fsaverage (RF-ANTs)
-For example, the default RF-ANTs implementation (preferred) with MNI data would be: 
-```
-regfusion -i mni_input.nii.gz -o output
-```
-True to the original implementation, two surface files (one each hemisphere) are saved to the output directory, `-o`, with the RF method and template embedded in the file names:
-```
-output/
-  lh.mni_input.allSub_RF_ANTs_MNI152_orig_to_fsaverage.nii.gz
-  rh.mni_input.allSub_RF_ANTs_MNI152_orig_to_fsaverage.nii.gz
-```
-
-#### 2) Default MNI to fsaverage (GIfTI)
-It may be preferred to generate GIfTI files instead of the default NIfTI:
-```
-regfusion -i mni_input.nii.gz -o output -t func.gii
-```
-The output, which will have the appropriate GIfTI file extensions:
-```
-output/
-  lh.mni_input.allSub_RF_ANTs_MNI152_orig_to_fsaverage.func.gii
-  rh.mni_input.allSub_RF_ANTs_MNI152_orig_to_fsaverage.func.gii
-```
-
-#### 3) Projecting to label.gii
-Should you wish to project a binary mask (e.g., to display a region of interest), you may consider setting the output type, `-t`, to `label.gii`. In this case, interpolation, `-i`, will always be set to `nearest` to retain the original voxel values/labels. If not explicitly set with `-i`, interpolation will be overwritten to `nearest` and warning is raised. 
-
-For example:
-```
-regfusion -i mni_input.nii.gz -o output -t label.gii
-```
-#### 4) MNI to fsaverage with RF-M3Z
-And finally, the RF-M3Z method can be used if that is preferred:
-```
-regfusion -i mni_input.nii.gz -r RF_M3Z -o output
 ```
 
 ## Python API
@@ -126,12 +95,76 @@ vol_to_fsaverage(input_img, out_dir, template_type='MNI152_orig',
         Absolute paths to left and right hemisphere output files, respectively
 ```
 
-The equivalent command for the first CLI example (i.e. the default RF_ANTs with MNI data):
+## Examples
 
+### 1. MNI to fsaverage (default)
+For example, the default RF-ANTs implementation (preferred) with MNI data would be: 
 ```python
-from regfusion import vol_to_fsaverage
+CLI:
+regfusion -s mni_input.nii.gz -o output
 
+Python:
+from regfusion import vol_to_fsaverage
 lh, rh = vol_to_fsaverage('mni_input.nii.gz', 'output')
+```
+True to the original implementation, two surface files (one each hemisphere) are saved to the output directory with the RF method and template embedded in the file names:
+```
+output/
+  lh.mni_input.allSub_RF_ANTs_MNI152_orig_to_fsaverage.nii.gz
+  rh.mni_input.allSub_RF_ANTs_MNI152_orig_to_fsaverage.nii.gz
+```
+
+### 2. MNI to fsaverage (GIfTI)
+It may be preferred to generate GIfTI files instead of the default NIfTI:
+```python
+CLI:
+regfusion -s mni_input.nii.gz -o output -t func.gii
+
+Python:
+from regfusion import vol_to_fsaverage
+lh, rh = vol_to_fsaverage('mni_input.nii.gz', 'output', out_type='func.gii')
+```
+The output, which will have the appropriate GIfTI file extensions:
+```
+output/
+  lh.mni_input.allSub_RF_ANTs_MNI152_orig_to_fsaverage.func.gii
+  rh.mni_input.allSub_RF_ANTs_MNI152_orig_to_fsaverage.func.gii
+```
+
+### 3. Projecting to label.gii
+Should you wish to project a binary mask (e.g., to display a region of interest), you may consider setting the output type, `-t`, to `label.gii`. In this case, interpolation, `-i`, will always be set to `nearest` to retain the original voxel values/labels. If not explicitly set with `-i`, interpolation will be overwritten to `nearest` and warning is raised. 
+
+For example:
+```python
+CLI:
+regfusion -s mni_input.nii.gz -o output -i nearest -t label.gii
+
+Python:
+from regfusion import vol_to_fsaverage
+lh, rh = vol_to_fsaverage('mni_input.nii.gz', 'output', interp='nearest', out_type='label.gii')
+```
+The output, which will have the appropriate GIfTI file extensions:
+```
+output/
+  lh.mni_input.allSub_RF_ANTs_MNI152_orig_to_fsaverage.label.gii
+  rh.mni_input.allSub_RF_ANTs_MNI152_orig_to_fsaverage.label.gii
+```
+
+### 4. MNI to fsaverage with RF-M3Z
+And finally, the RF-M3Z method can be used if that is preferred:
+```python
+CLI:
+regfusion -i mni_input.nii.gz -o output -p MNI152_norm -r RF_M3Z
+
+Python:
+from regfusion import vol_to_fsaverage
+lh, rh = vol_to_fsaverage('mni_input.nii.gz', 'output', template_type='MNI152_norm', rf_type='RF_M3Z')
+```
+The output, with different file names reflecting the method/template used:
+```
+output/
+  lh.mni_input.allSub_RF_M3Z_MNI152_norm_to_fsaverage.nii.gz
+  rh.mni_input.allSub_RF_M3Z_MNI152_norm_to_fsaverage.nii.gz
 ```
 
 ## Notes
