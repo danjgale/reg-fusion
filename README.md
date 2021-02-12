@@ -1,13 +1,24 @@
 # reg-fusion
 
-This is a Python implementation of [Wu et al (2018)'s registration fusion methods](https://onlinelibrary.wiley.com/doi/full/10.1002/hbm.24213) to project MRI data from standard volumetric coordinates, either MNI152 or Colin27, to Freesurfer's fsaverage. This is already [available in the MATLAB-based version](https://github.com/ThomasYeoLab/CBIG/tree/master/stable_projects/registration/Wu2017_RegistrationFusion) provided by *Wu et al*, which works really well out of the box! However, given Python's increasing stake in neuroimaging analysis, a pure Python version may be useful. 
+This is a Python implementation of [Wu et al (2018)'s registration fusion methods](https://onlinelibrary.wiley.com/doi/full/10.1002/hbm.24213) to project MRI data from standard volumetric coordinates, either MNI152 or Colin27, to Freesurfer's fsaverage. This is already [available in the MATLAB-based version](https://github.com/ThomasYeoLab/CBIG/tree/master/stable_projects/registration/Wu2017_RegistrationFusion) provided by *Wu et al*, which works well out of the box. However, given Python's increasing stake in neuroimaging analysis, a pure Python version may be useful. 
 
-A huge thank you to *Wu et al* for making excellent tool available! If you use this package, **please cite the original**:
+A huge thank you to *Wu et al* for making this excellent tool available! If you use this package, **please cite the original**:
 
-Wu J, Ngo GH, Greve DN, Li J, He T, Fischl B, Eickhoff SB, Yeo BTT. [**Accurate nonlinear mapping between MNI volumetric and FreeSurfer surface coordinate systems**](http://people.csail.mit.edu/ythomas/publications/2018VolSurfMapping-HBM.pdf), *Human Brain Mapping* 39:3793–3808, 2018.
+>Wu J, Ngo GH, Greve DN, Li J, He T, Fischl B, Eickhoff SB, Yeo BTT. [**Accurate nonlinear mapping between MNI volumetric and FreeSurfer surface coordinate systems**](http://people.csail.mit.edu/ythomas/publications/2018VolSurfMapping-HBM.pdf), *Human Brain Mapping* 39:3793–3808, 2018.
 
 ## Installation
 
+This package requires Python 3. Installing `regfusion` is simple with `pip`:
+```
+pip install regfusion
+```
+
+If you want to build `regfusion` directly from source code, use the following code:
+```
+git clone https://github.com/danjgale/reg-fusion
+cd reg-fusion
+python setup.py install
+```
 
 ## Command-line interface
 
@@ -34,6 +45,7 @@ optional arguments:
 
 ### Examples
 
+#### 1) Default MNI to fsaverage (RF-ANTs)
 For example, the default RF-ANTs implementation (preferred) with MNI data would be: 
 ```
 regfusion -i mni_input.nii.gz -o output
@@ -45,6 +57,7 @@ output/
   rh.mni_input.allSub_RF_ANTs_MNI152_orig_to_fsaverage.nii.gz
 ```
 
+#### 2) Default MNI to fsaverage (GIfTI)
 It may be preferred to generate GIfTI files instead of the default NIfTI:
 ```
 regfusion -i mni_input.nii.gz -o output -t func.gii
@@ -56,13 +69,14 @@ output/
   rh.mni_input.allSub_RF_ANTs_MNI152_orig_to_fsaverage.func.gii
 ```
 
+#### 3) Projecting to label.gii
 Should you wish to project a binary mask (e.g., to display a region of interest), you may consider setting the output type, `-t`, to `label.gii`. In this case, interpolation, `-i`, will always be set to `nearest` to retain the original voxel values/labels. If not explicitly set with `-i`, interpolation will be overwritten to `nearest` and warning is raised. 
 
 For example:
 ```
 regfusion -i mni_input.nii.gz -o output -t label.gii
 ```
-
+#### 4) MNI to fsaverage with RF-M3Z
 And finally, the RF-M3Z method can be used if that is preferred:
 ```
 regfusion -i mni_input.nii.gz -r RF_M3Z -o output
@@ -122,14 +136,14 @@ lh, rh = vol_to_fsaverage('mni_input.nii.gz', 'output')
 
 ## Notes
 
-`regfusion` implements the same two registration fusion approaches as the original MATLAB version by *Wu et al* (see `tests/` for validations). However, there are some differences in the API:
+`regfusion` implements the same two registration fusion approaches by *Wu et al*, and is validated against the original MATLAB version (see `tests/`). However, there are some differences in the API:
 - `regfusion` does not have the `-n` flag that determines the number of subjects used to create the average mapping. That is because the standalone scripts of the MATLAB versions only uses all 1490 subjects, and thus `regfusion` does too 
 - `regfusion` does not have the `-m` flag because no MATLAB is required
-- `regfusion` does not have the `-f` flag because, technically, Freesurfer is not required. However, it is strongly recommended to get a freely available Freesurfer license because we are ultimately projecting to Freesurfer's fsaverage
+- `regfusion` does not have the `-f` flag because, technically, Freesurfer is not required. However, it is strongly recommended that you have a freely available Freesurfer license because we are ultimately projecting to Freesurfer's fsaverage
 - Unlike the original MATLAB version, `regfusion` has a `-t` flag (`out_type` in `vol_to_fsaverage`; see above for description). The original MATLAB version outputs NIfTI images (`regfusion` default), but this option lets `regfusion` output to GIfTIs, which are generally preferred for surface files. Users are encouraged to set `-t`/`out_type` to one of the GIfTI output types if they find that GIfTIs are more suitable for their needs
 
 Some useful things to know:
-- *Wu et al* show that`RF_ANTs` is generally the better approaches of the two, which is why it is the default in `regfusion`. `RF_M3Z` seems best-suited if the normalization was performed via Freesurfer.
+- *Wu et al* show that RF-ANTs is generally the better approaches of the two, which is why it's the default in `regfusion`. RF-M3Z seems best-suited if the normalization was performed via Freesurfer.
 - As *Wu et al* emphasize, the *actual* best practice here avoid projecting standard volumetric coordinates (e.g., MNI) to fsaverage altogether. Alternatives include performing all you analyses in subject/native volumetric coordinates and projecting that data to fsaverage, based on Freesurfer's `recon-all`. Or, perform analyses directly in fsaverage after running `recon-all`. Projecting data from one standard coordinates space to another is loses precision at each step (see *Wu et al* for details). Neverthless, people do this all the time and these registration fusion approaches ensure that these projections are as accurate as possible.
 - Relating to the previous point: If you do project from MNI/Colin coordinates to fsaverage, it's probably a wise idea to find a way to still show your data in volume-space too (e.g., as supplementary figures/material).     
 
