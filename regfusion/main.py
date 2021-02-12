@@ -116,7 +116,7 @@ def vol_to_fsaverage(input_img, out_dir, template_type='MNI152_orig',
         original Wu et al (2018) implementation. Note that gifti 
         formats, either 'func.gii' or 'label.gii', are often preferred.
 
-    Parameters
+    Returns
     ----------
     str, str
         Absolute paths to left and right hemisphere output files, respectively
