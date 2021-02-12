@@ -157,11 +157,11 @@ def vol_to_fsaverage(input_img, out_dir, template_type='MNI152_orig',
         # project hemisphere
         ras = np.loadtxt(os.path.join(map_dir, hemi + mapping))
         projected = _project_data(img.get_fdata(), img.affine, ras, interp)
-    
+
         if out_type == 'nii.gz':
             # set nifti exactly like original Wu et al MATLAB version
-            projected = np.expand_dims(projected.T, 2)
-            out_img = nib.Nifti1Image(projected.astype(np.float), img.affine)
+            projected = np.expand_dims(projected.T, 2).astype(np.float32)
+            out_img = nib.Nifti1Image(projected, img.affine)
         elif out_type in accepted_out_types[1:]:
             out_img = _to_gifti(projected, out_type)
 
