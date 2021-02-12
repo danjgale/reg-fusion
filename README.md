@@ -2,14 +2,9 @@
 
 This is a Python implementation of [Wu et al (2018)'s registration fusion methods](https://onlinelibrary.wiley.com/doi/full/10.1002/hbm.24213) to project MRI data from standard volumetric coordinates, either MNI152 or Colin27, to Freesurfer's fsaverage. This is already [available in the MATLAB-based version](https://github.com/ThomasYeoLab/CBIG/tree/master/stable_projects/registration/Wu2017_RegistrationFusion) provided by *Wu et al*, which works really well out of the box! However, given Python's increasing stake in neuroimaging analysis, a pure Python version may be useful. 
 
----
 A huge thank you to *Wu et al* for making excellent tool available! If you use this package, **please cite the original**:
 
 Wu J, Ngo GH, Greve DN, Li J, He T, Fischl B, Eickhoff SB, Yeo BTT. [**Accurate nonlinear mapping between MNI volumetric and FreeSurfer surface coordinate systems**](http://people.csail.mit.edu/ythomas/publications/2018VolSurfMapping-HBM.pdf), *Human Brain Mapping* 39:3793–3808, 2018.
-
----
-
-
 
 ## Installation
 
